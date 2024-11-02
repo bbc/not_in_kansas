@@ -1,0 +1,11 @@
+#!/bin/bash
+set -eu
+# This script starts the application.  It is used by the cucumber tests (under-test.rb).
+
+BASE_DIR="$( dirname "$0" )"
+
+# 2>&1 because that makes life much easier in under-test.rb
+exec 2>&1
+export TZ=UTC
+jar="$( echo "$BASE_DIR"/target/ms6-componentc-*-SNAPSHOT-shaded.jar )"
+exec java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar "$jar" "$@"

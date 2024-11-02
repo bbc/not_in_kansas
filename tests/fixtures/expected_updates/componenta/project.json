@@ -1,0 +1,17 @@
+{
+    "name": "componenta",
+    "packaging": {
+        "type": "modav_jar",
+        "requires": [
+            "modav-cloud-common",
+            "java-1.8.0-openjdk",
+            "modav-vm-monitoring",
+            "data-gatherer",
+            "sysstat",
+            "curl",
+            "cosmos-ca-tools",
+            "cosmos-ca-chains",
+            "telegraf"
+        ]
+    }
+}

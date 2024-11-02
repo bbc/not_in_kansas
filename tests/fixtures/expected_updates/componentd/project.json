@@ -1,0 +1,24 @@
+{
+    "name": "componentd",
+    "packaging": {
+        "type": "modav_jar",
+        "requires": [
+            "modav-cloud-common",
+            "curl",
+            "jq",
+            "OpenJDK-1.8",
+            "sysstat",
+            "td-agent",
+            "cosmos-ca-bundle-devs",
+            "cosmos-ca-bundle-services",
+            "cosmos-ca-bundle-staff",
+            "cosmos-ca-tools",
+            "cfn-signal-ready",
+            "launch-scripts-configurator",
+            "nginx",
+            "telegraf",
+            "redhat-lsb-core",
+            "crl-bundler"
+        ]
+    }
+}

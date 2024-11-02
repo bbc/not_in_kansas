@@ -64,26 +64,40 @@ class RepoProcessor:
 
     def apply_change(self, repo_path: str) -> bool:
         logging.debug(f"Applying changes to {self.repo_name}")
+
+        # Prepare context for OpenAI API
         repo_context = {
             "repository": self.repo_name,
             "repo_path": repo_path,
             "target_files": self.repo_settings.get("target_files",
                                                    self.global_settings.get("target_files", []))
         }
+
+        # Read current contents of target files
+        current_files = {}
+        for file_path in repo_context["target_files"]:
+            full_path = os.path.join(repo_path, file_path)
+            if os.path.exists(full_path):
+                with open(full_path, 'r') as f:
+                    current_files[file_path] = f.read()
+            else:
+                logging.warning(f"File {file_path} does not exist in {self.repo_name}")
+
+        # Include current file contents in the context
+        repo_context["current_files"] = current_files
+
+        # Generate code using OpenAI API
         response = self.openai_client.generate_code(self.prompt, repo_context)
         updated_files = response.get("updated_files")
         if not updated_files:
             logging.warning(f"No updated files returned for {self.repo_name}")
             return False
 
+        # Apply updates to files
         for file_path, updated_code in updated_files.items():
             full_path = os.path.join(repo_path, file_path)
-            if os.path.exists(full_path):
-                with open(full_path, 'w') as f:
-                    f.write(updated_code)
-                logging.debug(f"Updated file {file_path} in {self.repo_name}")
-            else:
-                logging.warning(f"File {file_path} does not exist in {self.repo_name}")
-                continue
+            with open(full_path, 'w') as f:
+                f.write(updated_code)
+            logging.debug(f"Updated file {file_path} in {self.repo_name}")
 
         return True

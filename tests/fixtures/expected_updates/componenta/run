@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -eu
+
+# This script starts the application.  It is used by the cucumber tests (under-test.rb).
+# Use
+#   export NO_START_UNDERTEST=1
+# to suppress this (i.e. you have to start the app yourself).
+
+BASE_DIR="$( dirname "$0" )"
+
+# 2>&1 because that makes life much easier in under-test.rb
+exec 2>&1
+
+export SERVER_ENV='component-test'
+
+if [ -n "${WITH_MVN_RUNNER:-}" ]; then
+  exec mvn -f "$BASE_DIR"/*-war/pom.xml "$@" spring-boot:run --debug
+else
+  exec java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar "$BASE_DIR"/componenta-war/target/componenta.jar
+fi

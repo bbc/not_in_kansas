@@ -1,0 +1,28 @@
+{
+    "name": "ms6-componentc",
+    "packaging": {
+        "type": "modav_jar",
+        "requires": [
+            "modav-cloud-common",
+            "java-1.8.3-smilefacejdk",
+            "curl",
+            "td-agent",
+            "cosmos-ca-tools",
+            "cosmos-ca-bundle-devs",
+            "cosmos-ca-bundle-services",
+            "cosmos-ca-bundle-staff",
+            "cosmos-ca-bundler",
+            "redhat-lsb-core",
+            "sysstat",
+            "cfn-signal-ready",
+            "haproxy",
+            "synapse",
+            "jq",
+            "launch-scripts-configurator",
+            "nginx",
+            "sops",
+            "crl-bundler",
+            "mon-telegraf"
+        ]
+    }
+}
