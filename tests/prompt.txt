@@ -4,7 +4,7 @@ Upgrade the Java version from 1.8 to 11 in the following files:
   Replace:
   exec java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar "$BASE_DIR"/pendulum-war/target/componenta.jar
   With:
-  exec java -ea -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar "$BASE_DIR"/pendulum-war/target/pendulum.jar
+  exec java -ea -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar "$BASE_DIR"/pendulum-war/target/componenta.jar
 
 - "componenta/pom.xml":
   Replace:
