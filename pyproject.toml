@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "not-in-kansas"
+version = "0.1.0"
+description = ""
+authors = ["errolelliott <ezzy.elliott@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+openai = "^1.53.0"
+langchain = "^0.3.7"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
