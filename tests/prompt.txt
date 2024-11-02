@@ -1,0 +1,21 @@
+Upgrade the Java version from 1.8 to 11 in the following files:
+
+- "componenta/run":
+  Replace:
+  exec java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar "$BASE_DIR"/pendulum-war/target/componenta.jar
+  With:
+  exec java -ea -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar "$BASE_DIR"/pendulum-war/target/pendulum.jar
+
+- "componenta/pom.xml":
+  Replace:
+  <java.version>1.8</java.version>
+  With:
+  <java.version>11</java.version>
+
+- "componenta/project.json":
+  Replace:
+  "java-1.8.0-openjdk"
+  With:
+  "java-11-openjdk"
+
+Apply similar changes to the respective files in each repository listed in the context.

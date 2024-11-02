@@ -1,11 +1,15 @@
 import logging
 import openai
+import os
 
 
 class OpenAIClient:
     """Client to interact with the OpenAI API."""
 
-    def __init__(self, api_key: str):
+    def __init__(self):
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            raise ValueError("The OPENAI_API_KEY environment variable is not set.")
         openai.api_key = api_key
 
     def generate_code(self, prompt: str, context: dict) -> dict:

@@ -1,0 +1,17 @@
+{
+  "repositories": ["microservice-repo1", "microservice-repo2"],
+  "global_settings": {
+    "reviewers": ["dev1", "dev2"],
+    "build_command": "mvn test",
+    "target_files": ["src/main/java/App.java"]
+  },
+  "repository_settings": {
+    "microservice-repo1": {
+      "target_files": ["src/main/java/App.java"]
+    },
+    "microservice-repo2": {
+      "target_files": ["app.py"],
+      "build_command": "python -m unittest"
+    }
+  }
+}

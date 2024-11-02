@@ -14,7 +14,6 @@ def main():
     parser = argparse.ArgumentParser(description="Automate tech debt fixes across multiple repositories")
     parser.add_argument("--prompt", required=True, help="Prompt detailing the change")
     parser.add_argument("--context", required=True, help="Path to JSON file containing context")
-    parser.add_argument("--api-key", required=True, help="API key for OpenAI")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -27,7 +26,12 @@ def main():
         logging.error("No repositories specified in context")
         sys.exit(1)
 
-    openai_client = OpenAIClient(api_key=args.api_key)
+    try:
+        openai_client = OpenAIClient()
+    except ValueError as e:
+        logging.error(e)
+        sys.exit(1)
+
     github_client = GitHubClient()
 
     results = {}

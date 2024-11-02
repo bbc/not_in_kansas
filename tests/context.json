@@ -1,0 +1,49 @@
+{
+  "repositories": ["componenta", "componentb", "componentc", "componentd", "componente"],
+  "global_settings": {
+    "reviewers": ["dev1", "dev2"],
+    "build_command": "mvn test",
+    "target_files": [
+      "run",
+      "pom.xml",
+      "project.json"
+    ]
+  },
+  "repository_settings": {
+    "componenta": {
+      "target_files": [
+        "componenta/run",
+        "componenta/pom.xml",
+        "componenta/project.json"
+      ]
+    },
+    "componentb": {
+      "target_files": [
+        "componentb/run",
+        "componentb/pom.xml",
+        "componentb/project.json"
+      ]
+    },
+    "componentc": {
+      "target_files": [
+        "componentc/run",
+        "componentc/pom.xml",
+        "componentc/project.json"
+      ]
+    },
+    "componentd": {
+      "target_files": [
+        "componentd/run",
+        "componentd/pom.xml",
+        "componentd/project.json"
+      ]
+    },
+    "componente": {
+      "target_files": [
+        "componente/run",
+        "componente/pom.xml",
+        "componente/project.json"
+      ]
+    }
+  }
+}
