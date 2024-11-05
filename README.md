@@ -1,6 +1,11 @@
+```shell
+export OPENAI_API_KEY='your-api-key-here'
+```
+
+
 Run the Script:
 ```shell
-python3 main.py --prompt "Upgrade from Java 8 to Java 11" --context context.json --api-key YOUR_OPENAI_API_KEY
+python main.py --prompt-file path/to/prompt.txt --context-file path/to/context.json
 ```
 Ensure Environment Setup:
 	•	Install dependencies: pip install -r requirements.txt
