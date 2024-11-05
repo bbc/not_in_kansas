@@ -70,7 +70,7 @@ class RepoProcessor:
             "repository": self.repo_name,
             "repo_path": repo_path,
             "target_files": self.repo_settings.get("target_files",
-                                                   self.global_settings.get("target_files", []))
+                                                   self.global_settings.get("target_files", [])),
         }
 
         # Read current contents of target files
@@ -96,6 +96,7 @@ class RepoProcessor:
         # Apply updates to files
         for file_path, updated_code in updated_files.items():
             full_path = os.path.join(repo_path, file_path)
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
             with open(full_path, 'w') as f:
                 f.write(updated_code)
             logging.debug(f"Updated file {file_path} in {self.repo_name}")

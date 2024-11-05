@@ -12,14 +12,17 @@ from repo_processor import RepoProcessor
 
 def main():
     parser = argparse.ArgumentParser(description="Automate tech debt fixes across multiple repositories")
-    parser.add_argument("--prompt", required=True, help="Prompt detailing the change")
-    parser.add_argument("--context", required=True, help="Path to JSON file containing context")
+    parser.add_argument("--prompt-file", required=True, help="Path to the prompt text file")
+    parser.add_argument("--context-file", required=True, help="Path to JSON file containing context")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
 
-    with open(args.context, 'r') as f:
+    with open(args.context_file, 'r') as f:
         context = json.load(f)
+
+    with open(args.prompt_file, 'r') as f:
+        prompt = f.read()
 
     repos = context.get("repositories", [])
     if not repos:
@@ -36,7 +39,7 @@ def main():
 
     results = {}
     for repo_name in repos:
-        processor = RepoProcessor(repo_name, context, args.prompt, openai_client, github_client)
+        processor = RepoProcessor(repo_name, context, prompt, openai_client, github_client)
         processor.process()
         results[repo_name] = processor.result
 

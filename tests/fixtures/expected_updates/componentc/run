@@ -8,4 +8,4 @@ BASE_DIR="$( dirname "$0" )"
 exec 2>&1
 export TZ=UTC
 jar="$( echo "$BASE_DIR"/target/ms6-componentc-*-SNAPSHOT-shaded.jar )"
-exec java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar "$jar" "$@"
+exec exec java -ea -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar "$jar" "$@"
