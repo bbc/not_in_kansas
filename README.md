@@ -1,12 +1,14 @@
+Ensure you have set your OpenAI key as an environment variable.
+
 ```shell
 export OPENAI_API_KEY='your-api-key-here'
 ```
 
 
-Run the Script:
+To Run the Script:
 ```shell
 python main.py --prompt-file path/to/prompt.txt --context-file path/to/context.json
 ```
 Ensure Environment Setup:
-	•	Install dependencies: pip install -r requirements.txt
+	•	Install dependencies: Use `poetry shell`
 	•	Make sure gh, git, and other required CLI tools are installed and authenticated.

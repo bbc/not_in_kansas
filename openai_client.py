@@ -1,6 +1,7 @@
 import logging
 import openai
 import os
+import json  # Added import statement
 
 
 class OpenAIClient:
@@ -64,7 +65,7 @@ class OpenAIClient:
             if message.get('function_call'):
                 function_call = message['function_call']
                 arguments = json.loads(function_call.get('arguments', '{}'))
-                return arguments  # Should contain 'updated_files' and optionally 'comments'
+                return arguments  # Should contain 'updated_files'
 
             else:
                 logging.error("No function call in response.")

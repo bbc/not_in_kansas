@@ -1,26 +1,24 @@
-You are an AI assistant tasked with upgrading Java version from 1.8 to 11 in specified files. For each file, generate the updated content based on the following instructions.
+You are an AI assistant tasked with upgrading the Java version from 1.8 to 11 in specified files across multiple repositories.
 
-For example:
+For each repository and its target files, generate the updated content based on the following instructions:
 
-- In "componenta/run":
+- In "run":
   Replace:
-  exec java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar "$BASE_DIR"/pendulum-war/target/componenta.jar
+  exec java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar "$BASE_DIR"/pendulum-war/target/{component_name}.jar
   With:
   exec java -ea -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar "$BASE_DIR"/pendulum-war/target/pendulum.jar
 
-- In "componenta/pom.xml":
+- In "pom.xml":
   Replace:
   <java.version>1.8</java.version>
   With:
   <java.version>11</java.version>
 
-- In "componenta/project.json":
+- In "project.json":
   Replace:
   "java-1.8.0-openjdk"
   With:
   "java-11-openjdk"
-
-Apply similar changes to the respective files in each repository listed in the context.
 
 Please return the result as a JSON object with the file paths as keys and the updated content as values, in the following format:
 
@@ -33,3 +31,5 @@ Please return the result as a JSON object with the file paths as keys and the up
 }
 
 Do not include any additional text outside the JSON object.
+
+Note: Use the `{component_name}` placeholder for the actual component name.

@@ -12,37 +12,37 @@
   "repository_settings": {
     "componenta": {
       "target_files": [
-        "componenta/run",
-        "componenta/pom.xml",
-        "componenta/project.json"
+        "run",
+        "pom.xml",
+        "project.json"
       ]
     },
     "componentb": {
       "target_files": [
-        "componentb/run",
-        "componentb/pom.xml",
-        "componentb/project.json"
+        "run",
+        "pom.xml",
+        "project.json"
       ]
     },
     "componentc": {
       "target_files": [
-        "componentc/run",
-        "componentc/pom.xml",
-        "componentc/project.json"
+        "run",
+        "pom.xml",
+        "project.json"
       ]
     },
     "componentd": {
       "target_files": [
-        "componentd/run",
-        "componentd/pom.xml",
-        "componentd/project.json"
+        "run",
+        "pom.xml",
+        "project.json"
       ]
     },
     "componente": {
       "target_files": [
-        "componente/run",
-        "componente/pom.xml",
-        "componente/project.json"
+        "run",
+        "pom.xml",
+        "project.json"
       ]
     }
   }
