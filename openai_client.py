@@ -1,17 +1,14 @@
 import logging
-import openai
+import json
 import os
-import json  # Added import statement
-
+from openai import OpenAI
 
 class OpenAIClient:
-    """Client to interact with the OpenAI API."""
-
     def __init__(self):
         api_key = os.getenv('OPENAI_API_KEY')
         if not api_key:
             raise ValueError("The OPENAI_API_KEY environment variable is not set.")
-        openai.api_key = api_key
+        self.client = OpenAI(api_key=api_key)
 
     def generate_code(self, prompt: str, context: dict) -> dict:
         """Generates updated code based on the prompt and context."""
@@ -52,7 +49,7 @@ class OpenAIClient:
         ]
 
         try:
-            response = openai.ChatCompletion.create(
+            response = self.client.chat.completions.create(
                 model="chatgpt-4o-latest",
                 messages=messages,
                 functions=[function],
@@ -60,11 +57,11 @@ class OpenAIClient:
                 temperature=0,
             )
 
-            message = response['choices'][0]['message']
+            message = response.choices[0].message
 
-            if message.get('function_call'):
-                function_call = message['function_call']
-                arguments = json.loads(function_call.get('arguments', '{}'))
+            if message.function_call:
+                function_call = message.function_call
+                arguments = json.loads(function_call.arguments)
                 return arguments  # Should contain 'updated_files'
 
             else:
