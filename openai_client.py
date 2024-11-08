@@ -53,7 +53,7 @@ class OpenAIClient:
 
         try:
             response = openai.ChatCompletion.create(
-                model="gpt-4-0613",
+                model="chatgpt-4o-latest",
                 messages=messages,
                 functions=[function],
                 function_call={"name": "update_code"},

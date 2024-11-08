@@ -16,7 +16,7 @@ class RepoProcessor:
         self.prompt = prompt
         self.openai_client = openai_client
         self.github_client = github_client
-        self.repo_path = repo_path  # Store the repo_path if provided
+        self.repo_path = repo_path
         self.result = None
 
         # Initialize global and repository-specific settings
@@ -33,10 +33,12 @@ class RepoProcessor:
         if self.repo_path:
             # Use the provided repo_path
             repo_path = self.repo_path
+            logging.debug(f"Using provided repo path: {repo_path}")
         else:
             # Create a temporary directory
             with tempfile.TemporaryDirectory() as tmpdirname:
                 repo_path = os.path.join(tmpdirname, self.repo_name)
+                logging.debug(f"Created temporary directory: {repo_path}")
                 self._process_repository(repo_path)
                 return
         self._process_repository(repo_path)
@@ -46,9 +48,15 @@ class RepoProcessor:
             repo_url = f"https://github.com/bbc/{self.repo_name}"
             logging.debug(f"Repository URL: {repo_url}")
             logging.debug(f"Repository path: {repo_path}")
+
+            # Clone the repository
+            logging.info(f"Cloning repository {self.repo_name}")
             self.github_client.clone_repo(repo_url, repo_path)
+
             branch_name = "automated-tech-debt-fix"
+            logging.info(f"Creating branch {branch_name}")
             self.github_client.create_branch(repo_path, branch_name)
+
             updated = self.apply_change(repo_path)
 
             if not updated:
@@ -56,6 +64,7 @@ class RepoProcessor:
                 self.result = "No changes applied"
                 return
 
+            logging.info(f"Running tests for {self.repo_name}")
             tests_passed = self.test_runner.run_tests(repo_path)
 
             if not tests_passed:
@@ -64,17 +73,21 @@ class RepoProcessor:
                 return
 
             commit_message = "Automated update: Applied tech debt fix"
+            logging.info(f"Committing changes in {self.repo_name}")
             self.github_client.commit_changes(repo_path, commit_message)
+
+            logging.info(f"Pushing branch {branch_name}")
             self.github_client.push_branch(repo_path, branch_name)
 
             pr_title = f"[Automated PR] Tech debt fix for {self.repo_name}"
             pr_body = "This PR was created automatically to apply a tech debt fix.\n\nPlease review and merge."
             reviewers = self.repo_settings.get("reviewers", self.global_settings.get("reviewers", []))
+            logging.info(f"Creating pull request for {self.repo_name}")
             self.github_client.create_pull_request(repo_path, pr_title, pr_body, reviewers)
 
             self.result = "PR created"
         except Exception as e:
-            logging.error(f"Error processing repository {self.repo_name}: {e}")
+            logging.error(f"Error processing repository {self.repo_name}: {e}", exc_info=True)
             self.result = f"Error: {e}"
 
     def apply_change(self, repo_path: str) -> bool:
