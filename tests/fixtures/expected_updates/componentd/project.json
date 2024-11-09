@@ -6,7 +6,7 @@
             "modav-cloud-common",
             "curl",
             "jq",
-            "OpenJDK-1.8",
+            "java-11-openjdk",
             "sysstat",
             "td-agent",
             "cosmos-ca-bundle-devs",

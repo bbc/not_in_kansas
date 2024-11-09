@@ -5,4 +5,4 @@ set -eu
 BASE_DIR="$( dirname "$0" )"
 
 jar="$( echo "$BASE_DIR"/target/componentd-*-shaded.jar )"
-exec exec java -ea -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar "$jar" "$@"
+exec java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -jar "$jar" "$@"

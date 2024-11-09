@@ -29,8 +29,8 @@ class TestIntegration(unittest.TestCase):
         with open(self.context_path, 'r') as f:
             self.context = json.load(f)
 
-        # Load prompt.txt
-        self.prompt_path = os.path.join(os.path.dirname(__file__), 'prompt.txt')
+        # Load prompt_general.txt
+        self.prompt_path = os.path.join(os.path.dirname(__file__), 'prompt_general.txt')
         logging.debug(f"Prompt path: {self.prompt_path}")
         with open(self.prompt_path, 'r') as f:
             self.prompt = f.read()

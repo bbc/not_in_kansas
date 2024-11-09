@@ -90,7 +90,7 @@ class RepoProcessor:
             logging.error(f"Error processing repository {self.repo_name}: {e}", exc_info=True)
             self.result = f"Error: {e}"
 
-    def apply_change(self, repo_path: str) -> bool:
+    def apply_change(self, repo_path: str) -> dict:
         logging.debug(f"Applying changes to {self.repo_name}")
 
         # Prepare context for OpenAI API
@@ -122,7 +122,14 @@ class RepoProcessor:
             return False
 
         # Apply updates to files
-        for file_path, updated_code in updated_files.items():
+        for file_info in updated_files:
+            file_path = file_info.get('file_path')
+            updated_code = file_info.get('updated_content')
+
+            if not file_path or not updated_code:
+                logging.warning(f"Missing 'file_path' or 'updated_content' in {file_info}")
+                continue
+
             full_path = os.path.join(repo_path, file_path)
             os.makedirs(os.path.dirname(full_path), exist_ok=True)
             with open(full_path, 'w') as f:

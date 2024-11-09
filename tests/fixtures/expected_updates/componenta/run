@@ -17,5 +17,5 @@ export SERVER_ENV='component-test'
 if [ -n "${WITH_MVN_RUNNER:-}" ]; then
   exec mvn -f "$BASE_DIR"/*-war/pom.xml "$@" spring-boot:run --debug
 else
-  exec java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar "$BASE_DIR"/componenta-war/target/componenta.jar
+  exec java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -jar "$BASE_DIR"/componenta-war/target/componenta.jar
 fi

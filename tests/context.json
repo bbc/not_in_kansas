@@ -5,7 +5,6 @@
     "build_command": "mvn test",
     "target_files": [
       "run",
-      "pom.xml",
       "project.json"
     ]
   },
@@ -13,35 +12,30 @@
     "componenta": {
       "target_files": [
         "run",
-        "pom.xml",
         "project.json"
       ]
     },
     "componentb": {
       "target_files": [
         "run",
-        "pom.xml",
         "project.json"
       ]
     },
     "componentc": {
       "target_files": [
         "run",
-        "pom.xml",
         "project.json"
       ]
     },
     "componentd": {
       "target_files": [
         "run",
-        "pom.xml",
         "project.json"
       ]
     },
     "componente": {
       "target_files": [
         "run",
-        "pom.xml",
         "project.json"
       ]
     }

@@ -7,7 +7,7 @@ export OPENAI_API_KEY='your-api-key-here'
 
 To Run the Script:
 ```shell
-python main.py --prompt-file path/to/prompt.txt --context-file path/to/context.json
+python main.py --prompt-file path/to/prompt_original.txt --context-file path/to/context.json
 ```
 Ensure Environment Setup:
 	•	Install dependencies: Use `poetry shell`

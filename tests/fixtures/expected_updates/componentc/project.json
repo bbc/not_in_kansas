@@ -4,7 +4,7 @@
         "type": "modav_jar",
         "requires": [
             "modav-cloud-common",
-            "java-1.8.3-smilefacejdk",
+            "java-11-openjdk",
             "curl",
             "td-agent",
             "cosmos-ca-tools",

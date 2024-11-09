@@ -11,61 +11,78 @@ class OpenAIClient:
         self.client = OpenAI(api_key=api_key)
 
     def generate_code(self, prompt: str, context: dict) -> dict:
-        """Generates updated code based on the prompt and context."""
         logging.debug("Generating code with OpenAI API")
 
-        # Combine prompt and context for the API call
-        system_prompt = "You are a code assistant that only outputs JSON."
-        user_prompt = prompt
+        component_name = context.get('repository', '')
+        prompt = prompt.replace('{component_name}', component_name)
 
-        # Define the function schema
-        function = {
-            "name": "update_code",
-            "description": "Generates updated code for the specified files.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "updated_files": {
+        system_prompt = "You are a code assistant that only outputs JSON."
+        user_prompt = f"{prompt}\n\nContext:\n{json.dumps(context)}"
+
+        json_schema = {
+            "type": "object",
+            "properties": {
+                "updated_files": {
+                    "type": "array",
+                    "items": {
                         "type": "object",
-                        "description": "A mapping of file paths to their updated content.",
-                        "additionalProperties": {
-                            "type": "string",
-                            "description": "The updated content of the file."
-                        }
-                    },
-                    "comments": {
-                        "type": "string",
-                        "description": "Any additional comments or explanations."
+                        "properties": {
+                            "file_path": {
+                                "type": "string",
+                                "description": "The file path."
+                            },
+                            "updated_content": {
+                                "type": "string",
+                                "description": "The updated content of the file."
+                            }
+                        },
+                        "required": ["file_path", "updated_content"],
+                        "additionalProperties": False
                     }
-                },
-                "required": ["updated_files"]
-            }
+                }
+            },
+            "required": ["updated_files"],
+            "additionalProperties": False
         }
 
         messages = [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-            {"role": "user", "content": f"Context:\n{json.dumps(context)}"}
+            {"role": "user", "content": user_prompt}
         ]
+        print("##############################################################")
+        print(messages)
+        print("##############################################################")
+        print(json_schema)
+        print("##############################################################")
+        print("Use json_schema")
+        print("##############################################################")
 
         try:
             response = self.client.chat.completions.create(
-                model="chatgpt-4o-latest",
+                model="gpt-4o-2024-08-06",
                 messages=messages,
-                functions=[function],
-                function_call={"name": "update_code"},
+                response_format={
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "updated_files_schema",  # Added name field
+                        "schema": json_schema,
+                        "strict": True
+                    }
+                },
                 temperature=0,
             )
 
-            message = response.choices[0].message
+            logging.debug(f"Full response: {response}")
 
-            if message.function_call:
-                function_call = message.function_call
-                arguments = json.loads(function_call.arguments)
-                return arguments  # Should contain 'updated_files'
+            assistant_message = response.choices[0].message
+            assistant_content = assistant_message.content
 
-            else:
-                logging.error("No function call in response.")
+            try:
+                result = json.loads(assistant_content)
+                logging.debug(f"Assistant's response parsed successfully.")
+                return result
+            except json.JSONDecodeError as e:
+                logging.error(f"Failed to parse assistant's response: {e}")
                 return {}
 
         except Exception as e:
