@@ -108,6 +108,7 @@ class RepoProcessor:
             if os.path.exists(full_path):
                 with open(full_path, 'r') as f:
                     current_files[file_path] = f.read()
+                    logging.debug(f"Read content of {file_path} in {self.repo_name}")
             else:
                 logging.warning(f"File {file_path} does not exist in {self.repo_name}")
 

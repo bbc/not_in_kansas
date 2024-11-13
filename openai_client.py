@@ -52,9 +52,11 @@ class OpenAIClient:
 
         full_response_content = ""
         continuation_prompt = "Continue from where you left off."
+        attempt = 1
 
         try:
             while True:
+                logging.debug(f"API Call Attempt #{attempt}")
                 response = self.client.chat.completions.create(
                     model="gpt-4o-2024-08-06",
                     messages=messages,
@@ -74,15 +76,20 @@ class OpenAIClient:
                 assistant_message = response.choices[0].message
                 assistant_content = assistant_message.content
 
+                logging.debug(f"Assistant's content: {assistant_content}")
+
                 full_response_content += assistant_content
 
                 # Check if the assistant indicates continuation is needed
-                if "Continue" in assistant_content or self._response_incomplete(assistant_content):
+                if "Continue" in assistant_content or self._response_incomplete(full_response_content):
+                    logging.debug("Response incomplete, requesting continuation...")
                     # Prepare continuation message
                     messages.append({"role": "assistant", "content": assistant_content})
                     messages.append({"role": "user", "content": continuation_prompt})
+                    attempt += 1
                     continue
                 else:
+                    logging.debug("Received complete response.")
                     break
 
             try:
@@ -103,4 +110,5 @@ class OpenAIClient:
             json.loads(content)
             return False
         except json.JSONDecodeError:
+            logging.debug("JSON parsing failed, content is incomplete.")
             return True

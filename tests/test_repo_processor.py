@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 import tempfile
 import os
+import logging
 
 # Import your classes (adjust the import paths as necessary)
 from repo_processor import RepoProcessor
@@ -10,19 +11,23 @@ from github_client import GitHubClient
 from test_runner import TestRunner
 
 class TestRepoProcessor(unittest.TestCase):
+    @patch('openai_client.OpenAI')
     @patch('repo_processor.GitHubClient')
     @patch('repo_processor.OpenAIClient')
     @patch('repo_processor.TestRunner')
-    def test_repo_processor_long_output(self, mock_test_runner_class, mock_openai_client_class, mock_github_client_class):
-        # Mock the OpenAIClient to simulate continuation
-        mock_openai_client = mock_openai_client_class.return_value
+    def test_repo_processor_long_output(self, mock_test_runner_class, mock_openai_client_class, mock_github_client_class, mock_openai_class):
+        # Set up logging
+        logging.basicConfig(level=logging.DEBUG)
+
+        # Mock the OpenAI client instance
+        mock_openai_instance = mock_openai_class.return_value
 
         # Simulate incomplete responses
         incomplete_response_part1 = '{"updated_files": [{"file_path": "pom.xml", "updated_content": "<project><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>my-app</artifactId><version>1.0-SNAPSHOT</version>'  # Note: intentionally incomplete
         incomplete_response_part2 = '</project>"}]}'
 
         # Side effect to simulate multiple API calls
-        mock_openai_client.client.chat.completions.create.side_effect = [
+        mock_openai_instance.chat.completions.create.side_effect = [
             # First call returns incomplete response
             MagicMock(choices=[MagicMock(message=MagicMock(content=incomplete_response_part1))]),
             # Second call returns the continuation
@@ -72,7 +77,7 @@ class TestRepoProcessor(unittest.TestCase):
                 repo_name="microservice-repo1",
                 context=context,
                 prompt=prompt,
-                openai_client=mock_openai_client,
+                openai_client=OpenAIClient(),  # This will use the mocked OpenAI
                 github_client=mock_github_client,
                 repo_path=repo_path
             )
@@ -82,7 +87,7 @@ class TestRepoProcessor(unittest.TestCase):
 
             # Assertions to verify that the assistant was called multiple times
             self.assertEqual(
-                mock_openai_client.client.chat.completions.create.call_count,
+                mock_openai_instance.chat.completions.create.call_count,
                 2,
                 "Expected generate_code to handle continuations and make multiple API calls."
             )

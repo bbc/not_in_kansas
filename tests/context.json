@@ -5,38 +5,44 @@
     "build_command": "mvn test",
     "target_files": [
       "run",
-      "project.json"
+      "project.json",
+      "pom.xml"
     ]
   },
   "repository_settings": {
     "componenta": {
       "target_files": [
         "run",
-        "project.json"
+        "project.json",
+        "pom.xml"
       ]
     },
     "componentb": {
       "target_files": [
         "run",
-        "project.json"
+        "project.json",
+        "pom.xml"
       ]
     },
     "componentc": {
       "target_files": [
         "run",
-        "project.json"
+        "project.json",
+        "pom.xml"
       ]
     },
     "componentd": {
       "target_files": [
         "run",
-        "project.json"
+        "project.json",
+        "pom.xml"
       ]
     },
     "componente": {
       "target_files": [
         "run",
-        "project.json"
+        "project.json",
+        "pom.xml"
       ]
     }
   }
