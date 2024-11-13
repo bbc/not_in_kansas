@@ -13,6 +13,90 @@ class TestRepoProcessor(unittest.TestCase):
     @patch('repo_processor.GitHubClient')
     @patch('repo_processor.OpenAIClient')
     @patch('repo_processor.TestRunner')
+    def test_repo_processor_long_output(self, mock_test_runner_class, mock_openai_client_class, mock_github_client_class):
+        # Mock the OpenAIClient to simulate continuation
+        mock_openai_client = mock_openai_client_class.return_value
+
+        # Simulate incomplete responses
+        incomplete_response_part1 = '{"updated_files": [{"file_path": "pom.xml", "updated_content": "<project><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>my-app</artifactId><version>1.0-SNAPSHOT</version>'  # Note: intentionally incomplete
+        incomplete_response_part2 = '</project>"}]}'
+
+        # Side effect to simulate multiple API calls
+        mock_openai_client.client.chat.completions.create.side_effect = [
+            # First call returns incomplete response
+            MagicMock(choices=[MagicMock(message=MagicMock(content=incomplete_response_part1))]),
+            # Second call returns the continuation
+            MagicMock(choices=[MagicMock(message=MagicMock(content=incomplete_response_part2))]),
+        ]
+
+        # Mock the TestRunner to always return True
+        mock_test_runner = mock_test_runner_class.return_value
+        mock_test_runner.run_tests.return_value = True
+
+        # Mock the GitHubClient methods
+        mock_github_client = mock_github_client_class.return_value
+        mock_github_client.clone_repo = MagicMock()
+        mock_github_client.create_branch = MagicMock()
+        mock_github_client.commit_changes = MagicMock()
+        mock_github_client.push_branch = MagicMock()
+        mock_github_client.create_pull_request = MagicMock()
+
+        # Prepare context and prompt
+        context = {
+            "repositories": ["microservice-repo1"],
+            "global_settings": {
+                "reviewers": ["dev1", "dev2"],
+                "build_command": "echo test",
+                "target_files": ["pom.xml"]
+            },
+            "repository_settings": {
+                "microservice-repo1": {
+                    "target_files": ["pom.xml"]
+                }
+            }
+        }
+        prompt = "Upgrade dependencies in pom.xml to the latest versions."
+
+        # Use a temporary directory for the repository path
+        with tempfile.TemporaryDirectory() as temp_repo_path:
+            repo_path = os.path.join(temp_repo_path, "microservice-repo1")
+            os.makedirs(repo_path, exist_ok=True)
+
+            # Create a dummy pom.xml file
+            target_file_path = os.path.join(repo_path, "pom.xml")
+            with open(target_file_path, 'w') as f:
+                f.write("<project><modelVersion>4.0.0</modelVersion></project>")
+
+            # Instantiate RepoProcessor with mocked clients
+            processor = RepoProcessor(
+                repo_name="microservice-repo1",
+                context=context,
+                prompt=prompt,
+                openai_client=mock_openai_client,
+                github_client=mock_github_client,
+                repo_path=repo_path
+            )
+
+            # Run the process method
+            processor.process()
+
+            # Assertions to verify that the assistant was called multiple times
+            self.assertEqual(
+                mock_openai_client.client.chat.completions.create.call_count,
+                2,
+                "Expected generate_code to handle continuations and make multiple API calls."
+            )
+
+            # Ensure that the file was updated with the concatenated content
+            with open(target_file_path, 'r') as f:
+                updated_content = f.read()
+            expected_content = "<project><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>my-app</artifactId><version>1.0-SNAPSHOT</version></project>"
+            self.assertEqual(updated_content, expected_content)
+
+
+    @patch('repo_processor.GitHubClient')
+    @patch('repo_processor.OpenAIClient')
+    @patch('repo_processor.TestRunner')
     def test_repo_processor_github_calls(self, mock_test_runner_class, mock_openai_client_class, mock_github_client_class):
         # Mock the OpenAIClient to return a controlled response
         mock_openai_client = mock_openai_client_class.return_value

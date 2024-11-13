@@ -16,7 +16,7 @@ class OpenAIClient:
         component_name = context.get('repository', '')
         prompt = prompt.replace('{component_name}', component_name)
 
-        system_prompt = "You are a code assistant that only outputs JSON."
+        system_prompt = "You are a code assistant that outputs code in JSON format."
         user_prompt = f"{prompt}\n\nContext:\n{json.dumps(context)}"
 
         json_schema = {
@@ -49,36 +49,44 @@ class OpenAIClient:
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ]
-        print("##############################################################")
-        print(messages)
-        print("##############################################################")
-        print(json_schema)
-        print("##############################################################")
-        print("Use json_schema")
-        print("##############################################################")
+
+        full_response_content = ""
+        continuation_prompt = "Continue from where you left off."
 
         try:
-            response = self.client.chat.completions.create(
-                model="gpt-4o-2024-08-06",
-                messages=messages,
-                response_format={
-                    "type": "json_schema",
-                    "json_schema": {
-                        "name": "updated_files_schema",  # Added name field
-                        "schema": json_schema,
-                        "strict": True
-                    }
-                },
-                temperature=0,
-            )
+            while True:
+                response = self.client.chat.completions.create(
+                    model="gpt-4o-2024-08-06",
+                    messages=messages,
+                    response_format={
+                        "type": "json_schema",
+                        "json_schema": {
+                            "name": "updated_files_schema",
+                            "schema": json_schema,
+                            "strict": True
+                        }
+                    },
+                    temperature=0,
+                )
 
-            logging.debug(f"Full response: {response}")
+                logging.debug(f"Full response: {response}")
 
-            assistant_message = response.choices[0].message
-            assistant_content = assistant_message.content
+                assistant_message = response.choices[0].message
+                assistant_content = assistant_message.content
+
+                full_response_content += assistant_content
+
+                # Check if the assistant indicates continuation is needed
+                if "Continue" in assistant_content or self._response_incomplete(assistant_content):
+                    # Prepare continuation message
+                    messages.append({"role": "assistant", "content": assistant_content})
+                    messages.append({"role": "user", "content": continuation_prompt})
+                    continue
+                else:
+                    break
 
             try:
-                result = json.loads(assistant_content)
+                result = json.loads(full_response_content)
                 logging.debug(f"Assistant's response parsed successfully.")
                 return result
             except json.JSONDecodeError as e:
@@ -88,3 +96,11 @@ class OpenAIClient:
         except Exception as e:
             logging.error(f"OpenAI API call failed: {e}")
             return {}
+
+    def _response_incomplete(self, content: str) -> bool:
+        # Implement logic to detect incomplete JSON content
+        try:
+            json.loads(content)
+            return False
+        except json.JSONDecodeError:
+            return True
