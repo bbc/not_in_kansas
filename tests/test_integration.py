@@ -121,6 +121,69 @@ class TestIntegration(unittest.TestCase):
                             })
                 return {"updated_files": updated_files_list}
             # ... repeat for componentc, componentd, componente
+            elif repo_name == "componentc": # And so on for other components...
+                expected_update_dir = os.path.join(self.fixture_dir, 'expected_updates', repo_name)
+                for target_file_rel_path in repo_context["target_files"]:
+                    expected_file_path = os.path.join(expected_update_dir, target_file_rel_path)
+                    if os.path.exists(expected_file_path):
+                        with open(expected_file_path, 'r') as f:
+                            expected_content = f.read()
+                        updated_files_list.append({
+                            "file_path": target_file_rel_path,
+                            "updated_content": expected_content
+                        })
+                    else:
+                        original_file_path_full = os.path.join(repo_context["repo_path"], target_file_rel_path)
+                        if os.path.exists(original_file_path_full):
+                            with open(original_file_path_full, 'r') as f:
+                                original_content = f.read()
+                            updated_files_list.append({
+                                "file_path": target_file_rel_path,
+                                "updated_content": original_content
+                            })
+                return {"updated_files": updated_files_list}
+            elif repo_name == "componentd": # And so on for other components...
+                expected_update_dir = os.path.join(self.fixture_dir, 'expected_updates', repo_name)
+                for target_file_rel_path in repo_context["target_files"]:
+                    expected_file_path = os.path.join(expected_update_dir, target_file_rel_path)
+                    if os.path.exists(expected_file_path):
+                        with open(expected_file_path, 'r') as f:
+                            expected_content = f.read()
+                        updated_files_list.append({
+                            "file_path": target_file_rel_path,
+                            "updated_content": expected_content
+                        })
+                    else:
+                        original_file_path_full = os.path.join(repo_context["repo_path"], target_file_rel_path)
+                        if os.path.exists(original_file_path_full):
+                            with open(original_file_path_full, 'r') as f:
+                                original_content = f.read()
+                            updated_files_list.append({
+                                "file_path": target_file_rel_path,
+                                "updated_content": original_content
+                            })
+                return {"updated_files": updated_files_list}
+            elif repo_name == "componente": # And so on for other components...
+                expected_update_dir = os.path.join(self.fixture_dir, 'expected_updates', repo_name)
+                for target_file_rel_path in repo_context["target_files"]:
+                    expected_file_path = os.path.join(expected_update_dir, target_file_rel_path)
+                    if os.path.exists(expected_file_path):
+                        with open(expected_file_path, 'r') as f:
+                            expected_content = f.read()
+                        updated_files_list.append({
+                            "file_path": target_file_rel_path,
+                            "updated_content": expected_content
+                        })
+                    else:
+                        original_file_path_full = os.path.join(repo_context["repo_path"], target_file_rel_path)
+                        if os.path.exists(original_file_path_full):
+                            with open(original_file_path_full, 'r') as f:
+                                original_content = f.read()
+                            updated_files_list.append({
+                                "file_path": target_file_rel_path,
+                                "updated_content": original_content
+                            })
+                return {"updated_files": updated_files_list}
             else: # Default if not specifically handled
                 updated_files_list = []
                 for target_file_rel_path in repo_context["target_files"]:
