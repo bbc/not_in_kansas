@@ -1,0 +1,16 @@
+{
+  "updated_files": [
+    {
+      "file_path": "run",
+      "updated_content": "#!/bin/bash\n\nset -eu\n\n# This script starts the application.  It is used by the cucumber tests (under-test.rb).\n# Use\n#   export NO_START_UNDERTEST=1\n# to suppress this (i.e. you have to start the app yourself).\n\nBASE_DIR=\"$( dirname \"$0\" )\"\n\n# 2>&1 because that makes life much easier in under-test.rb\nexec 2>&1\n\nexport SERVER_ENV='component-test'\n\nif [ -n \"${WITH_MVN_RUNNER:-}\" ]; then\n  exec mvn -f \"$BASE_DIR\"/*-war/pom.xml \"$@\" spring-boot:run --debug\nelse\n  exec java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -jar \"$BASE_DIR\"/componenta-war/target/componenta.jar\nfi\n"
+    },
+    {
+      "file_path": "project.json",
+      "updated_content": "{\n    \"name\": \"componenta\",\n    \"packaging\": {\n        \"type\": \"modav_jar\",\n        \"requires\": [\n            \"modav-cloud-common\",\n            \"java-11-openjdk\",\n            \"modav-vm-monitoring\",\n            \"data-gatherer\",\n            \"sysstat\",\n            \"curl\",\n            \"cosmos-ca-tools\",\n            \"cosmos-ca-chains\",\n            \"telegraf\"\n        ]\n    }\n}"
+    },
+    {
+      "file_path": "pom.xml",
+      "updated_content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project ... (entire updated pom.xml content here) ... </project>"
+    }
+  ]
+}
