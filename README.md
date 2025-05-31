@@ -1,4 +1,4 @@
-Ensure you have set your OpenAI key as an environment variable.
+Ensure you have set your OpenAI and GOOGLE_API_KEY keys as an environment variable.
 
 ```shell
 export OPENAI_API_KEY='your-api-key-here'

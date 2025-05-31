@@ -2,12 +2,12 @@ class BaseAppException(Exception):
     """Base class for custom exceptions in this application."""
     pass
 
-class OpenAIClientError(BaseAppException):
-    """Custom exception for OpenAI API client errors."""
+class LLMClientError(BaseAppException): # Renamed
+    """Custom exception for LLM API client errors."""
     pass
 
-class OpenAIResponseError(OpenAIClientError):
-    """Custom exception for errors in OpenAI API response format or content."""
+class LLMResponseError(LLMClientError): # Renamed and inherits from LLMClientError
+    """Custom exception for errors in LLM API response format or content."""
     pass
 
 class GitHubClientError(BaseAppException):
