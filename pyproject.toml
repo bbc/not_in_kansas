@@ -10,9 +10,8 @@ readme = "README.md"
 python = "^3.11"
 openai = "^1.53.0"
 langchain = "^0.3.7"
-
+google-generativeai = "^0.7.0" # Added Gemini SDK
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
