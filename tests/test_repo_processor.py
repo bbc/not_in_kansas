@@ -16,7 +16,7 @@ from exceptions import BaseAppException
 class TestRepoProcessor(unittest.TestCase):
 
     def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
+        self.temp_dir_base = tempfile.mkdtemp() # A base for any temp dirs we might manage
         self.repo_name = "microservice-repo1"
         self.mock_context = {
             "global_settings": {
@@ -34,39 +34,60 @@ class TestRepoProcessor(unittest.TestCase):
         }
         self.prompt = "Test prompt for {component_name}"
 
-        # Create a dummy repo structure for tests that need it
-        self.test_repo_path = os.path.join(self.temp_dir, self.repo_name)
-        os.makedirs(os.path.join(self.test_repo_path, "src/main"), exist_ok=True)
-        with open(os.path.join(self.test_repo_path, "pom.xml"), "w") as f:
-            f.write("<project></project>")
-        with open(os.path.join(self.test_repo_path, "src/main/App.java"), "w") as f:
-            f.write("public class App {}")
-
+        # This path is for tests that *provide* a repo_path
+        self.provided_test_repo_path = os.path.join(self.temp_dir_base, "provided_repo", self.repo_name)
+        os.makedirs(os.path.join(self.provided_test_repo_path, "src/main"), exist_ok=True)
+        with open(os.path.join(self.provided_test_repo_path, "pom.xml"), "w") as f:
+            f.write("<project_original_in_provided_path></project_original_in_provided_path>")
+        with open(os.path.join(self.provided_test_repo_path, "src/main/App.java"), "w") as f:
+            f.write("public class OriginalApp {}")
 
     def tearDown(self):
-        shutil.rmtree(self.temp_dir)
+        shutil.rmtree(self.temp_dir_base)
 
-    @patch('repo_processor.GitHubClient') # Mock the class used by RepoProcessor
-    @patch('repo_processor.TestRunner')   # Mock the class used by RepoProcessor
+    @patch('repo_processor.GitHubClient')
+    @patch('repo_processor.TestRunner')
     def test_full_successful_process(self, MockTestRunner, MockGitHubClient):
         mock_openai_client = MagicMock(spec=OpenAIClient)
         mock_github_instance = MockGitHubClient.return_value
         mock_test_runner_instance = MockTestRunner.return_value
 
+        # --- Configure mock_github_instance.clone_repo to set up the files ---
+        def fake_clone_repo(repo_url, dest_path):
+            logging.debug(f"MOCK clone_repo: Simulating clone of {repo_url} to {dest_path}")
+            # dest_path is the path *inside* the RepoProcessor's temporary directory
+            os.makedirs(os.path.join(dest_path, "src/main"), exist_ok=True)
+            with open(os.path.join(dest_path, "pom.xml"), "w") as f:
+                f.write("<project_cloned></project_cloned>") # Content for the "cloned" pom
+            with open(os.path.join(dest_path, "src/main/App.java"), "w") as f:
+                f.write("public class ClonedApp {}") # Content for the "cloned" App.java
+
+        mock_github_instance.clone_repo.side_effect = fake_clone_repo
+        # --- End of clone_repo mock setup ---
+
         mock_openai_client.generate_code.return_value = {
-            "updated_files": [{"file_path": "pom.xml", "updated_content": "<project>updated</project>"}]
+            "updated_files": [{"file_path": "pom.xml", "updated_content": "<project_updated_by_llm></project_updated_by_llm>"}]
         }
         mock_test_runner_instance.run_tests.return_value = (True, "Tests passed output")
 
-        # Pass repo_path=None to force temp dir creation and cloning logic
         processor = RepoProcessor(self.repo_name, self.mock_context, self.prompt,
-                                  mock_openai_client, mock_github_instance, repo_path=None)
+                                  mock_openai_client, mock_github_instance, repo_path=None) # repo_path=None to trigger clone
         processor.process()
 
         self.assertEqual(processor.status, RepoStatus.SUCCESS_PR_CREATED)
-        mock_github_instance.clone_repo.assert_called_once()
+        mock_github_instance.clone_repo.assert_called_once() # Assert it was called
+
+        # Now, RepoProcessor.apply_changes would have written to the pom.xml inside its temp dir
+        # We can't easily get that path directly without modifying RepoProcessor for tests,
+        # but we can check that generate_code was called with the correct context.
+        args_list = mock_openai_client.generate_code.call_args_list
+        self.assertEqual(len(args_list), 1)
+        call_args, call_kwargs = args_list[0]
+        passed_context = call_args[1] # Context is the second positional argument
+        self.assertIn("pom.xml", passed_context["current_files"])
+        self.assertEqual(passed_context["current_files"]["pom.xml"], "<project_cloned></project_cloned>")
+
         mock_github_instance.create_or_reset_branch.assert_called_once()
-        mock_openai_client.generate_code.assert_called_once()
         mock_test_runner_instance.run_tests.assert_called_once()
         mock_github_instance.commit_changes.assert_called_once()
         mock_github_instance.push_branch.assert_called_once()
@@ -80,22 +101,25 @@ class TestRepoProcessor(unittest.TestCase):
         mock_test_runner_instance = MockTestRunner.return_value
 
         mock_openai_client.generate_code.return_value = {
-            "updated_files": [{"file_path": "pom.xml", "updated_content": "<project>updated by test</project>"}]
+            "updated_files": [{"file_path": "pom.xml", "updated_content": "<project>updated by test in provided path</project>"}]
         }
         mock_test_runner_instance.run_tests.return_value = (True, "Tests passed")
 
+        # Use the path prepared in setUp
         processor = RepoProcessor(self.repo_name, self.mock_context, self.prompt,
-                                  mock_openai_client, mock_github_instance, repo_path=self.test_repo_path)
+                                  mock_openai_client, mock_github_instance, repo_path=self.provided_test_repo_path)
         processor.process()
 
-        mock_github_instance.clone_repo.assert_not_called() # Should not clone
+        mock_github_instance.clone_repo.assert_not_called()
         self.assertEqual(processor.status, RepoStatus.SUCCESS_PR_CREATED)
 
-        # Verify file was written
-        with open(os.path.join(self.test_repo_path, "pom.xml"), 'r') as f:
+        with open(os.path.join(self.provided_test_repo_path, "pom.xml"), 'r') as f:
             content = f.read()
-        self.assertEqual(content, "<project>updated by test</project>")
+        self.assertEqual(content, "<project>updated by test in provided path</project>")
 
+    # ... (other tests remain largely the same, but ensure they use self.provided_test_repo_path
+    #      when testing scenarios that don't involve the clone step, like test_no_changes_from_openai,
+    #      test_openai_api_error, test_tests_fail) ...
 
     @patch('repo_processor.GitHubClient')
     @patch('repo_processor.TestRunner')
@@ -103,10 +127,10 @@ class TestRepoProcessor(unittest.TestCase):
         mock_openai_client = MagicMock(spec=OpenAIClient)
         mock_github_instance = MockGitHubClient.return_value
 
-        mock_openai_client.generate_code.return_value = {"updated_files": []} # No files to update
+        mock_openai_client.generate_code.return_value = {"updated_files": []}
 
         processor = RepoProcessor(self.repo_name, self.mock_context, self.prompt,
-                                  mock_openai_client, mock_github_instance, repo_path=self.test_repo_path)
+                                  mock_openai_client, mock_github_instance, repo_path=self.provided_test_repo_path)
         processor.process()
 
         self.assertEqual(processor.status, RepoStatus.SUCCESS_NO_CHANGES)
@@ -121,7 +145,7 @@ class TestRepoProcessor(unittest.TestCase):
         mock_openai_client.generate_code.side_effect = OpenAIClientError("Simulated API error")
 
         processor = RepoProcessor(self.repo_name, self.mock_context, self.prompt,
-                                  mock_openai_client, mock_github_instance, repo_path=self.test_repo_path)
+                                  mock_openai_client, mock_github_instance, repo_path=self.provided_test_repo_path)
         processor.process()
         self.assertEqual(processor.status, RepoStatus.ERROR_OPENAI_API)
 
@@ -136,10 +160,10 @@ class TestRepoProcessor(unittest.TestCase):
         mock_openai_client.generate_code.return_value = {
             "updated_files": [{"file_path": "pom.xml", "updated_content": "<project>updated</project>"}]
         }
-        mock_test_runner_instance.run_tests.return_value = (False, "Test failed output") # Tests fail
+        mock_test_runner_instance.run_tests.return_value = (False, "Test failed output")
 
         processor = RepoProcessor(self.repo_name, self.mock_context, self.prompt,
-                                  mock_openai_client, mock_github_instance, repo_path=self.test_repo_path)
+                                  mock_openai_client, mock_github_instance, repo_path=self.provided_test_repo_path)
         processor.process()
 
         self.assertEqual(processor.status, RepoStatus.ERROR_TESTS_FAILED)
@@ -151,20 +175,25 @@ class TestRepoProcessor(unittest.TestCase):
         mock_openai_client = MagicMock(spec=OpenAIClient)
         mock_github_instance = MockGitHubClient.return_value
 
-        # Create an empty repo for this test case
-        empty_repo_path = os.path.join(self.temp_dir, "empty_repo")
+        empty_repo_path = os.path.join(self.temp_dir_base, "empty_repo_for_not_found_test")
         os.makedirs(empty_repo_path, exist_ok=True)
 
         context_with_nonexistent_targets = self.mock_context.copy()
-        context_with_nonexistent_targets["repository_settings"][self.repo_name]["target_files"] = ["nonexistent.xml"]
+        # Ensure this repo_name is used for this specific test scenario's context
+        test_specific_repo_name = "empty_repo_for_not_found_test"
+        context_with_nonexistent_targets["repository_settings"] = {
+            test_specific_repo_name: {"target_files": ["nonexistent.xml"]}
+        }
 
 
-        processor = RepoProcessor(self.repo_name, context_with_nonexistent_targets, self.prompt,
+        processor = RepoProcessor(test_specific_repo_name, context_with_nonexistent_targets, self.prompt,
                                   mock_openai_client, mock_github_instance, repo_path=empty_repo_path)
         processor.process()
 
         self.assertEqual(processor.status, RepoStatus.ERROR_TARGET_FILES_NOT_FOUND_ALL)
         mock_openai_client.generate_code.assert_not_called()
+
+# ... (rest of the file, if any) ...
 
 
     # test_repo_processor_long_output (from original dump) - needs significant refactor
